@@ -1,17 +1,22 @@
 import iptc
 
 table = iptc.Table(iptc.Table.FILTER)
-print(table.name)
-# for chain in table.chains:
-#     print("=======================")
-#     print("Chain ", chain.name)
-#     for rule in chain.rules:
-#         print("Rule","proto:",rule.protocol,"src:",rule.src,"dst:",rule.dst,"in:",rule.in_interface,"out:",rule.out_interface)
-#         print("Matches:"),
-#         for match in rule.matches:
-#             print(match.name),
-#             print("Target:"),
-#             print(rule.target.name)
-# print("=======================")
-#
+for chain in table.chains:
+	x = 1	
+	for rule in chain.rules:
+		print("======================RULE {} IN CHAIN=============================".format(x))
+		print("[]Proto: {}".format(rule.protocol))
+		print("[]Src: {}".format(rule.src))
+		print("[]Dst: {}".format(rule.dst))
+		print("In Interface: {}".format(rule.in_interface))
+		print("Out Interface: {}".format(rule.out_interface))
+		x+=1
+		for match in rule.matches:
+			print("\t\t\t======================MATCH IN RULE=============================")
+			print("\t\t\t[]Dst port: {}".format(match.dport))
+			print("\t\t\t[]Src port: {}".format(match.srcport))
+			print("\t\t\tMatch src_range: {}".format(match.src_range))
+			print("\t\t\tMatch dst_range: {}".format(match.dst_range))
+			print("\t\t\tMatch name: {}".format(match.name))
+			print("\t\t\tRule Target Name: {}".format(rule.target.name))
 

@@ -1,0 +1,6 @@
+#!/bin/sh
+iptables -F
+iptables -X
+
+iptables -A INPUT -p tcp -m iprange --src-range 141.192.0.0/16 --dport 100:110 -j ACCEPT
+
