@@ -3,6 +3,24 @@ Installable linux packet
 Generate random property
 Generate random chain
 
+1. (22,22) if single port
+2. (22,54) for range of port
+3. (0-65535) for no port
+4. SADDY 
+	1. -s 10.0.0.1
+		a. 10.0.0.1
+	2. -s 10.0.0.0/24 
+		a. 10.0.0.0-10.0.0.255
+5. DADDY 
+	1. -d 10.0.0.1
+	2. -d 10.0.0.0/24
+6. SRANGE
+	1. --src-range 10.0.0.1-10.0.0.1
+		a. 10.0.0.1
+	2. --src-range 10.0.0.0-10.0.0.255
+7. DRANGE
+	1. --dst-range 10.0.0.1-10.0.0.1
+
 ## Quick
 ### Problem
 We start with two inputs
