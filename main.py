@@ -11,8 +11,16 @@ class ruleTuple(object):
 		self.dport = dport
 		self.action = action
 
-def main():	
-	table = iptc.Table(iptc.Table.FILTER)
+
+
+
+def printTupList(ruleTuple):
+	#print(ruleTuple.tupList)
+	r = {k:v for k, v in vars(ruleTuple).items() if v != 'None'}
+	print(r)
+	z = {**	
+	#print ', '.join("%s: %s" % item for item in r.items())
+def extract(table):
 	x = 1	
 	for chain in table.chains:
 		for rule in chain.rules:
@@ -21,19 +29,16 @@ def main():
 			x+=1
 			for match in rule.matches:
 				print("----------------------------{}------------------------------".format("Match"))
-				# print("[Protocol] Proto: {}".format(rule.protocol))
-				# print("[Single Source Address] Src: {}".format(rule.src))
-				# print("[Single Destination Address] Dst: {}".format(rule.dst))
-				# print("Chain Name: {}".format(chain.name))
-				# print("[Destination Port] Dst port: {}".format(match.dport))
-				# print("[Source Port] Src port: {}".format(match.sport))
-				# print("[Range Source Address] Match src_range: {}".format(match.src_range))
-				# print("[Range Destination Address] Match dst_range: {}".format(match.dst_range))
-				# print("[Action] Rule Target Name: {}".format(rule.target.name))
 				r = ruleTuple(str(rule.protocol), str(rule.src), str(rule.dst), str(match.src_range), str(match.dst_range), str(match.sport), str(match.dport), str(rule.target.name)) 
-				print(r.__dict__)
+				#print(r.__dict__)
+				#r.tupList.append(r.__dict__)	
+				printTupList(r)
 				print("\n")
-				
+			
+
+
+def main():	
+	extract(iptc.Table(iptc.Table.FILTER))
 if __name__ == "__main__":
 	main()
 
