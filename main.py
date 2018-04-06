@@ -1,13 +1,15 @@
 import iptc
+from netaddr import IPAddress
+import ipaddress
 
 class tupleList(object):
 	def __init__(self):
 		self.list = []
-
+		self.tup = ()
 class ruleTuple(object):
 	def __init__(self):
 		self.list = []
-
+		self.tup = ()
 	def fill(self, protocol, src, dst, src_range, dst_range, sport, dport, action):
 		self.protocol = protocol
 		self.src_range = src_range
@@ -20,35 +22,67 @@ class ruleTuple(object):
 
 def clean(t):
 	for obj in t.list:
+		obj.list = []
+		# dictionary for this
 		if obj.protocol == 'tcp':
-			obj.protocol = [6,6]
-
+			obj.protocol = (6,6)
+			obj.list.append(obj.protocol)
 		elif obj.protocol == 'udp':
-			obj.protocol = [17,17]
-
-		if obj.src_range == '0.0.0.0/0.0.0.0':
-			obj.src_range = [0,255]
-
-		if obj.dst_range == '0.0.0.0/0.0.0.0':
-			obj.dst_range = [0,255]
-
+			obj.protocol = (17,17)
+			obj.list.append(obj.protocol)
+		if obj.src_range == 'None':
+			obj.src_range = ('0.0.0.0','255.255.255.255')
+			obj.list.append(obj.src_range)
+		else:
+			obj.src_range = tuple(obj.src_range.split('-'))
+			obj.list.append(obj.src_range)
+		if obj.dst_range == 'None':
+			obj.dst_range = ('0.0.0.0','255.255.255.255')
+			obj.list.append(obj.dst_range)
+		else:
+			obj.dst_range = tuple(obj.dst_range.split('-'))
+			obj.list.append(obj.dst_range)
 		if obj.src == '0.0.0.0/0.0.0.0':
-			obj.src = [0,255]
-
+			obj.src = ('0.0.0.0','255.255.255.255')
+			obj.list.append(obj.src)
+		else:
+			ip, netmask = obj.src.split('/')
+			n = ipaddress.IPv4Network(u'{}'.format("{}/{}".format(ip, IPAddress(netmask).netmask_bits())))
+			obj.src = tuple([str(n[0]), str(n[-1])])
+			obj.list.append(obj.src)
 		if obj.dst == '0.0.0.0/0.0.0.0':
-			obj.dst = [0,255]
-
+			obj.dst = ('0.0.0.0','255.255.255.255')
+			obj.list.append(obj.dst)
+		else:
+			ip, netmask = obj.src.split('/')
+			n = ipaddress.IPv4Network(u'{}'.format("{}/{}".format(ip, IPAddress(netmask).netmask_bits())))
+			obj.src = tuple([str(n[0]), str(n[-1])])
+			obj.list.append(obj.src)
 		if obj.sport == 'None':
-			obj.sport = [0,65535]
-
+			obj.sport = (0,65535)
+			obj.list.append(obj.sport)
+		else:
+			b = obj.dport.split(':')
+			if len(b) == 1:
+				b.append(b[0])
+			obj.dport = tuple(b)
 		if obj.dport == 'None':
-			obj.dport = [0,65535]
-
+			obj.dport = (0,65535)
+			obj.list.append(obj.dport)
+		else:
+			print(obj.dport)
+			b = obj.dport.split(':')
+			if len(b) == 1:
+				b.append(b[0])
+			obj.dport = tuple(b)
+			obj.list.append(obj.dport)
 		if obj.action == 'ACCEPT':
 			obj.action = 0
-
+			obj.list.append(obj.action)
 		elif obj.action == 'DROP':
 			obj.action = 1 
+			obj.list.append(obj.action)
+		obj.tup = tuple(obj.list)
 	
 def merge_two_dicts(t):
 	for obj in t.list:
@@ -61,43 +95,38 @@ def merge_two_dicts(t):
 		else:
 			del obj.list[0]['list'] 
 			obj.list = obj.list[0]	
-		# print(obj.list)
-		# print("\n")
 	return t
 
 def printTupList(t):
 	for obj in t.list:
-		print(obj.__dict__)
+		print(obj.tup)
 		print("\n")
 def extract(table):
-	x = 1	
-	t = tupleList()
+	objList = tupleList()
 	for chain in table.chains:
 		for rule in chain.rules:
-			# print("======================RULE {0} IN CHAIN=============================".format(x))
-			# print("\n")
-			x+=1
 			r = ruleTuple()
 			y = 0
 			for match in rule.matches:
 				y+=1 
-				
-				# print("----------------------------{}------------------------------".format("Match"))
 				r.fill(str(rule.protocol), str(rule.src), str(rule.dst), str(match.src_range), str(match.dst_range), str(match.sport), str(match.dport), str(rule.target.name)) 
 				#noNoneDict = {k:v for k, v in vars(r).items() if v != 'None'}
 
 				noNoneDict = {k:v for k, v in vars(r).items()}
 				r.list.append(noNoneDict)
 				if y == len(rule.matches):
-					t.list.append(r)		
+					objList.list.append(r)		
 				# print("\n")
-	clean(merge_two_dicts(t))
-	
-	printTupList(t)			
+	clean(merge_two_dicts(objList))	
+	printTupList(objList)			
 
 
 def main():	
+	n = ipaddress.IPv4Network(u'10.10.128.0/24')
+	first, last = n[0], n[-1]
+	# print(first, last)
 	extract(iptc.Table(iptc.Table.FILTER))
+
 if __name__ == "__main__":
 	main()
 
