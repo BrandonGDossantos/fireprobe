@@ -26,8 +26,8 @@ class Rule(object):
 
 def get_tuple(obj):
 	values = []
-	for item in vars(obj).items():
-		values.append(item)
+	for x in vars(obj).items():
+		values.append(x)
 	return tuple(values)
 
 def clean_ip(ip):
@@ -55,7 +55,9 @@ def clean_port(port):
 
 		
 def print_rule_objects(obj_list):
-	print(obj_list)
+	for obj in obj_list:
+		print("===========================")
+		print(obj)
 	#for obj in obj_list:
 
 def print_orig(rule, match, y):
