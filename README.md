@@ -442,3 +442,16 @@ Second slice, test packets:
 
 **Theorem III:**
 - If a slice has a witness packet, one of the packets in the Cartesian product of collected values is a witness packet.
+
+**Description from H.B.**
+"Write a Linux tool that takes as input a firewall (or picks up the machine's iptables filter chains), 
+and a property (which is ONE iptables rule), and check - using the algorithm given in the slides - 
+whether the firewall satisfies the property. 
+
+In other words, if the property says “accept the packets matching this predicate”, all those packets
+are accepted by the firewall. If it says, “reject …” all those packets are discarded by the firewall.
+(You can be smart and ask the user if filtered packets count as discard, or only dropped packets.)
+
+Ideally, the tool should be available as a package. It would be even better if you could set up a 
+repo so ubuntu users can install it with apt-get. Performance (speed, memory) matters, but any
+language is fine."
