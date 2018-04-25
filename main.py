@@ -90,7 +90,7 @@ def extract(table):
 # (first octet * 256)^3 + (second octect * 256)^2 + (third octect * 256)^1 + (fourth octect * 256)^0
 def ip2int(addr):
 	array = str(addr).split(".")
-	ipAsInt = (int(array[0]) * 256)^3 + (int(array[1]) * 256)^2 + (int(array[2]) * 256)^1 + (int(array[3]) * 256)^0
+	ipAsInt = (int(array[0]) * 256^3) + (int(array[1]) * 256^2) + (int(array[2]) * 256^1) + (int(array[3]) * 256^0)
 	return ipAsInt
 
 def main():
