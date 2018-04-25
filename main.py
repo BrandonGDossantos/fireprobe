@@ -53,7 +53,7 @@ def set_port(port):
 		if len(split_port) == 1:
 			split_port.append(int(split_port[0]))
 		return tuple(split_port)
-		
+
 def print_rule_objects(obj_list):
 	for obj in obj_list:
 		print("===========================")
@@ -87,8 +87,13 @@ def extract(table):
 				rule_obj.set_action(str(rule.target.name))
 				if y == len(rule.matches):
 					RULE_OBJ_LIST.append(get_tuple(rule_obj))
+# (first octet * 256)^3 + (second octect * 256)^2 + (third octect * 256)^1 + (fourth octect * 256)^0
+def ip2int(addr):
+	array = str(addr).split(".")
+	ipAsInt = (int(array[0]) * 256)^3 + (int(array[1]) * 256)^2 + (int(array[2]) * 256)^1 + (int(array[3]) * 256)^0
+	return ipAsInt
 
-def main():	
+def main():
 	extract(iptc.Table(iptc.Table.FILTER))
 	print_rule_objects(RULE_OBJ_LIST)
 if __name__ == "__main__":
