@@ -10,8 +10,7 @@ PRT_MAP = {'None':(0, 65535), None:(0,65535)}
 ACTION_MAP = {'ACCEPT': (0, 0), 'DROP':(1, 1), None:(1, 1)}
 
 RULE_OBJ_LIST = []
-PROJECTED_RULES = []
-
+END_POINTS = []
 class Rule(object):
 	def __init__(self, protocol=None, src=None, dst=None, sport=None, dport=None, action=None, srcRange=None, dstRange=None):
 		self.set_protocol(protocol)
@@ -34,7 +33,6 @@ class Rule(object):
 	def set_action(self, action):
 		self.action = ACTION_MAP[action]
 	
-
 def get_tuple(obj):
 	values = []
 	for x in vars(obj).items():
@@ -67,46 +65,51 @@ def set_port(port):
 		return tuple(split_port)
 		
 def projection(property_rule, firewall_rules):
+	projected_firewall = []
 	for firewall_rule in firewall_rules:
+		projected_rule = {}
 		for k in firewall_rule.keys():
-			if (firewall_rule[k][1] < property_rule[k][0]) or (firewall_rule[k][0] > property_rule[k][1]):
-				left, right = firewall_rule[k][0], firewall_rule[k][1]
-			else:
-					if property_rule[k][0] > firewall_rule[k][0]:
-						left = property_rule[k][0]
-					else:
-						left = firewall_rule[k][0]
-					if property_rule[k][1] > firewall_rule[k][1]:
-						right = firewall_rule[k][1]
-					else:
-						right = property_rule[k][1]
-			print("-------------------")
-			print("Firewall Rule {} : {}".format(k, firewall_rule[k]))
-			print("Property {} : {}".format(k, property_rule[k]))
-			print("\tProjected {} : {}".format(k, tuple([left, right])))
-		print("=====================")
+			projected_rule[k] = check_overlaps(firewall_rule, property_rule, k)
+		projected_firewall.append(projected_rule)
+	return clean_projections(projected_firewall)
 
-def print_rule_objects(obj_list):
-	for obj in obj_list:
-		print("="*170)
-		print(obj)
+def check_overlaps(firewall_rule, property_rule, k):
+	if k == 'action':
+		return firewall_rule[k][0]
+	if (firewall_rule[k][1] < property_rule[k][0]) or (firewall_rule[k][0] > property_rule[k][1]):
+		return None
+	else:
+		if property_rule[k][0] > firewall_rule[k][0]:
+			left = property_rule[k][0]
+		else:
+			left = firewall_rule[k][0]
+		if property_rule[k][1] > firewall_rule[k][1]:
+			right = firewall_rule[k][1]
+		else:
+			right = property_rule[k][1]
+	return tuple([left, right])
 
-def print_orig(rule, match, y):
-	print("**************Original-{}********************".format(y))
-	print("Protocol: {}".format(rule.protocol))
-	print("Src: {}".format(rule.src))
-	print("Dst: {}".format(rule.dst))
-	print("Src Range: {}".format(match.src_range))
-	print("Dst Range: {}".format(match.dst_range))
-	print("Sport: {}".format(match.sport))
-	print("Dport: {}".format(match.dport))
-	print("Action: {}".format(rule.target.name))
+def clean_projections(PROJECTED_FIREWALL):
+	clean_projected_firewall = []
+	for rule in PROJECTED_FIREWALL:
+		if None not in rule.values():
+			clean_projected_firewall.append(rule)
+	return clean_projected_firewall
 
-def printTupList(t):
-	for obj in t.list:
-		print(obj.tup)
-		print("\n")
 
+def end_points(property_rule, projected_firewall):
+	end_points = {}
+	property_action = property_rule['action'][0]
+	for rule in projected_firewall:
+		if rule['action'] != property_action:
+			for k in rule.keys():
+				if k != 'action':
+					end_points.setdefault(k, []).append(rule[k][0])
+					end_points.setdefault(k, []).append((rule[k][1])+1)
+	end_points = remove_duplicates(end_points)
+	print(end_points)
+
+def remove_duplicates(
 def extract(table):
 	for chain in table.chains:
 		for rule in chain.rules:
@@ -119,6 +122,7 @@ def extract(table):
 				rule_obj.set_action(str(rule.target.name))
 				if y == len(rule.matches):
 					RULE_OBJ_LIST.append(get_tuple(rule_obj))
+
 def main():	
 	parser = argparse.ArgumentParser(description='Tool to check if an iptables firewall satisfies a given property.')
 	parser.add_argument("-p", "--protocol", help="Protocol: tcp, udp")
@@ -131,9 +135,9 @@ def main():
 	parser.add_argument("-a", "--action", help="ACCEPT '0' or DROP '1'")
 	args = parser.parse_args()
 	property_rule = Rule(args.protocol, args.src, args.dst, args.sport, args.dport, args.action, args.srcRange, args.dstRange)
-	print(property_rule.__dict__)
 	extract(iptc.Table(iptc.Table.FILTER))
-	projection(property_rule.__dict__, RULE_OBJ_LIST)
+	projected_firewall = projection(property_rule.__dict__, RULE_OBJ_LIST)
+	end_points(property_rule.__dict__, projected_firewall)
 
 if __name__ == "__main__":
 	main()
