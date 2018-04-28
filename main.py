@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# ^^ necessry to be run after debian package install
 import iptc
 from netaddr import IPAddress
 import argparse
@@ -65,7 +67,6 @@ def set_port(port):
 		if len(split_port) == 1:
 			split_port.append(int(split_port[0]))
 		return tuple(split_port)
-<<<<<<< HEAD
 		
 def projection(property_rule, firewall_rules):
 	for firewall_rule in firewall_rules:
@@ -86,8 +87,6 @@ def projection(property_rule, firewall_rules):
 			print("Property {} : {}".format(k, property_rule[k]))
 			print("\tProjected {} : {}".format(k, tuple([left, right])))
 		print("=====================")
-=======
->>>>>>> 4707c9a1016f075f5c5efce7cbf5051a7f301e5a
 
 def print_rule_objects(obj_list):
 	for obj in obj_list:
@@ -122,7 +121,6 @@ def extract(table):
 				rule_obj.set_action(str(rule.target.name))
 				if y == len(rule.matches):
 					RULE_OBJ_LIST.append(get_tuple(rule_obj))
-<<<<<<< HEAD
 def main():	
 	parser = argparse.ArgumentParser(description='Tool to check if an iptables firewall satisfies a given property.')
 	parser.add_argument("-p", "--protocol", help="Protocol: tcp, udp")
@@ -136,15 +134,6 @@ def main():
 	args = parser.parse_args()
 	property_rule = Rule(args.protocol, args.src, args.dst, args.sport, args.dport, args.action, args.srcRange, args.dstRange)
 	print(property_rule.__dict__)
-=======
-# (first octet * 256)^3 + (second octect * 256)^2 + (third octect * 256)^1 + (fourth octect * 256)^0
-def ip2int(addr):
-	array = str(addr).split(".")
-	ipAsInt = (int(array[0]) * 256^3) + (int(array[1]) * 256^2) + (int(array[2]) * 256^1) + (int(array[3]) * 256^0)
-	return ipAsInt
-
-def main():
->>>>>>> 4707c9a1016f075f5c5efce7cbf5051a7f301e5a
 	extract(iptc.Table(iptc.Table.FILTER))
 	projection(property_rule.__dict__, RULE_OBJ_LIST)
 if __name__ == "__main__":
