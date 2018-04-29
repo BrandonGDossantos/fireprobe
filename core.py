@@ -1,3 +1,4 @@
+import itertools
 import iptc
 from netaddr import IPAddress
 import argparse
@@ -96,20 +97,64 @@ def clean_projections(PROJECTED_FIREWALL):
 			clean_projected_firewall.append(rule)
 	return clean_projected_firewall
 
-
 def end_points(property_rule, projected_firewall):
 	end_points = {}
 	property_action = property_rule['action'][0]
 	for rule in projected_firewall:
-		if rule['action'] != property_action:
+		if rule['action'] == property_action:
+			for k in rule.keys():
+				if k != 'action':
+					if (rule[k][1]+1) <= property_rule[k][1]:
+						end_points.setdefault(k, []).append((rule[k][1])+1)
+		else:
 			for k in rule.keys():
 				if k != 'action':
 					end_points.setdefault(k, []).append(rule[k][0])
-					end_points.setdefault(k, []).append((rule[k][1])+1)
-	end_points = remove_duplicates(end_points)
-	print(end_points)
+	return remove_duplicates(end_points)
 
-def remove_duplicates(
+def cartesian(end_point_list):
+	return (dict(zip(end_point_list, x)) for x in itertools.product(*end_point_list.values()))
+
+def remove_duplicates(end_points):
+	removed_duplicates = {}
+	for k in end_points.keys():
+		removed_duplicates[k] = list(set(end_points[k]))
+	return removed_duplicates
+
+def launch_probes(witness_packets, RULE_OBJ_LIST):
+	resolved_witness = {}
+	for packet in witness_packets:
+		for rule in RULE_OBJ_LIST:
+			dont_add = False
+			for k in packet.keys():
+				if packet[k] in range(rule[k][0], rule[k][1]):
+					pass
+				else:
+					dont_add = True
+					break
+			
+			if not dont_add:
+				index_packet = witness_packets.index(packet)
+				if resolved_witness.has_key(index_packet):
+					continue
+				else:
+					resolved_witness[index_packet] = rule['action'][0]
+	return resolved_witness
+
+def clean_resolved_witness(resolved_witness, witness_packets, property_action):
+	least_witness = []
+	# resolved_witness = {0:1, 1:0, 2:0, 3:1, 4:0, 5:0}
+	for k,v in resolved_witness.items():
+		if v != property_action:
+			least_witness.append(witness_packets[k])		
+	return least_witness
+def alert_user(least_witness):
+	if not least_witness:
+		print("ALL GOOD")
+	else:
+		for packet in least_witness:
+			print(packet)
+
 def extract(table):
 	for chain in table.chains:
 		for rule in chain.rules:
@@ -137,7 +182,10 @@ def main():
 	property_rule = Rule(args.protocol, args.src, args.dst, args.sport, args.dport, args.action, args.srcRange, args.dstRange)
 	extract(iptc.Table(iptc.Table.FILTER))
 	projected_firewall = projection(property_rule.__dict__, RULE_OBJ_LIST)
-	end_points(property_rule.__dict__, projected_firewall)
-
+	end_point_list = end_points(property_rule.__dict__, projected_firewall)
+	witness_packets = list(cartesian(end_point_list))
+	resolved_witness = launch_probes(witness_packets, RULE_OBJ_LIST)
+	least_witness = clean_resolved_witness(resolved_witness, witness_packets, property_rule['action'][0])
+	alert_user(least_witness)
 if __name__ == "__main__":
 	main()
