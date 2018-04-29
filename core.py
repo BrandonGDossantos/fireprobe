@@ -127,6 +127,8 @@ def launch_probes(witness_packets, RULE_OBJ_LIST):
 		for rule in RULE_OBJ_LIST:
 			dont_add = False
 			for k in packet.keys():
+				print(rule[k][0])
+				print(rule[k][1])
 				if packet[k] in range(rule[k][0], rule[k][1]):
 					pass
 				else:
@@ -152,6 +154,7 @@ def alert_user(least_witness):
 	if not least_witness:
 		print("ALL GOOD")
 	else:
+		print(least_witness)
 		for packet in least_witness:
 			print(packet)
 
@@ -182,10 +185,11 @@ def main():
 	property_rule = Rule(args.protocol, args.src, args.dst, args.sport, args.dport, args.action, args.srcRange, args.dstRange)
 	extract(iptc.Table(iptc.Table.FILTER))
 	projected_firewall = projection(property_rule.__dict__, RULE_OBJ_LIST)
+	print(projected_firewall)
 	end_point_list = end_points(property_rule.__dict__, projected_firewall)
 	witness_packets = list(cartesian(end_point_list))
 	resolved_witness = launch_probes(witness_packets, RULE_OBJ_LIST)
-	least_witness = clean_resolved_witness(resolved_witness, witness_packets, property_rule['action'][0])
+	least_witness = clean_resolved_witness(resolved_witness, witness_packets, property_rule.action)
 	alert_user(least_witness)
 if __name__ == "__main__":
 	main()
