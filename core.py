@@ -33,7 +33,9 @@ class Rule(object):
 			self.dport = set_port(dport)
 	def set_action(self, action):
 		self.action = ACTION_MAP[action]
-	
+
+# returns a dictionary of every value where the key is the value within the class
+# the value is the value within the class
 def get_tuple(obj):
 	values = []
 	for x in vars(obj).items():
@@ -152,12 +154,23 @@ def clean_resolved_witness(resolved_witness, witness_packets, property_action):
 	return least_witness
 def alert_user(least_witness):
 	if not least_witness:
-		print("ALL GOOD")
+		print("\n==================================================")
+		print("=======  No least witness packets found.   =======")
+		print("======= Firewall properties are effective. =======")
+		print("==================================================")
 	else:
-		print(least_witness)
+		#print(least_witness)
+		print("\n==================================================")
+		print("===== Least witness packets were discovered! =====")
+		print("==================================================")
+		n = 1
 		for packet in least_witness:
+			print("\n" + str(n) + " **** Least witness packet property ****")
 			print(packet)
+			n = n + 1
 
+# go for every chain, then every rule in the chain, then sets the values 
+# creates the rule object list
 def extract(table):
 	for chain in table.chains:
 		for rule in chain.rules:
