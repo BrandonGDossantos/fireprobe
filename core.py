@@ -6,7 +6,6 @@ import ipaddress
 
 PROTO_MAP = {'tcp':6, 'udp':17, None:6, 'None':6}
 IP_MAP = {'0.0.0.0/0.0.0.0': (0, 4294967295), 'None':(0, 4294967295), None:(0, 4294967295)}
-# socket get proto by name
 PRT_MAP = {'None':(0, 65535), None:(0,65535)}
 ACTION_MAP = {'ACCEPT': (0, 0), 'DROP':(1, 1), None:(1, 1)}
 
@@ -18,9 +17,9 @@ class Rule(object):
 	
 	Attributes: 
 		protocol: tcp, udp that gets converted to a number by the PROTO_MAP
-		src: source address that is formatted '0.0.0.0/0'
-		dst: destination address formatted '0.0.0.0/0'
-		sport: source port formatted '22' or '22:33' as a range
+		src: source address in CIDR notation
+		dst: destination address in CIDR notation
+		sport: source port 
 		dport: destination port 
 		action: ACCEPT or DROP mapped to 0 or 1 respectively
 		srcRange: range of source IPs 
@@ -31,13 +30,14 @@ class Rule(object):
 		self.set_protocol(protocol)
 		self.set_pairs(src, srcRange, sport, dst, dstRange, dport)
 		self.set_action(action)
+
 	def set_protocol(self, protocol):
 		"""
 		Creates a tuple version of the protocol using PROTO_MAP.
 		Ex. protocol 'tcp' converts to (6,6)
 		"""
 		self.protocol = (PROTO_MAP[protocol], PROTO_MAP[protocol])
-	# Destinguishes whether the user inputed a range of IPs or not.
+
 	def set_pairs(self, src, srcRange, sport, dst, dstRange, dport):
 		"""Destinguishes whether the user inputed a range of IPs or a single IP and sets attributes"""
 		if (srcRange == 'None' or srcRange == None)  and (dstRange == 'None' or dstRange == None):
@@ -50,6 +50,7 @@ class Rule(object):
 			self.dst = set_ip_range(dstRange)
 			self.sport = set_port(sport)
 			self.dport = set_port(dport)
+
 	def set_action(self, action):
 		"""
 		Sets the action using ACTION_MAP
@@ -335,8 +336,6 @@ def alert_user(least_witness):
 			print(packet)
 			n = n + 1
 
-# go for every chain, then every rule in the chain, then sets the values 
-# creates the rule object list
 def extract(table):
 	"""Extract all rules from iptables using python iptables library and create Rule objects out of them
 	   then append each object to the global RULE_OBJ_LIST for later consumption.
