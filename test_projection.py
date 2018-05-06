@@ -15,11 +15,18 @@ class TestProjectionMethods(unittest.TestCase):
 
 	def test_end_points(self):
 		PROPERTY_RULE1 = {'src':(23,87), 'dst':(73,177), 'action':(0,0)}
-		FIREWALL_RULE1 = [{'src':(10,110), 'dst':(90,190), 'action':(0,0)}, 
-					{'src':(20,120), 'dst':(80,180), 'action':(1,1)}, 
-					{'src':(30,130), 'dst':(70,170), 'action':(0,0)},
-					{'src':(40,140), 'dst':(60,160), 'action':(1,1)},
-					{'src':(1,200), 'dst':(1,200), 'action':(0,0)}]
+		FIREWALL_RULE1 = []
+		length = random.randint(1,99999)
+		for x in range(length):
+			srcl = random.randint(1,999)
+			srch = random.randint(srcl,999)
+            dstl = random.randint(1,999)
+            dsth = random.randint(dstl,999)
+            actionl = random.randint(0,1)
+            actionh = random.randint(0,1)
+            rule = {'src':(srcl,srch), 'dst':(dstl,dsth), 'action':(actionl,actionh)}
+            FIREWALL_RULE1.append(rule)
+		print("*** GENERATED ", str(length), " RANDOM FIREWALL RULES ***")
 		PROPERTY_RULE2 = {'src':(1,100), 'dst':(1,100), 'action':(0,0)}
 		CLEAN_PROJECTION1 = [{'action': 0, 'src': (23, 87), 'dst': (90, 177)}, 
 							{'action': 1, 'src': (23, 87), 'dst': (80, 177)}, 
